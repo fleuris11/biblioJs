@@ -2,28 +2,20 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/user.model.js";
 
-// Cache secrets and validate they exist to provide clearer errors
+// Ensure JWT secrets are set
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 const signAccess = (user) => {
   if (!ACCESS_SECRET) {
-    throw new Error(
-      "JWT_ACCESS_SECRET not set. Add JWT_ACCESS_SECRET to your .env (see .env.example)"
-    );
+    throw new Error("JWT_ACCESS_SECRET not set. Add it to your .env");
   }
-  return jwt.sign(
-    { sub: user.id, email: user.email },
-    ACCESS_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m" }
-  );
+  return jwt.sign({ sub: user.id, email: user.email }, ACCESS_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m" });
 };
 
 const signRefresh = (user) => {
   if (!REFRESH_SECRET) {
-    throw new Error(
-      "JWT_REFRESH_SECRET not set. Add JWT_REFRESH_SECRET to your .env (see .env.example)"
-    );
+    throw new Error("JWT_REFRESH_SECRET not set. Add it to your .env");
   }
   return jwt.sign(
     { sub: user.id, email: user.email, type: "refresh" },

@@ -8,8 +8,7 @@ export const BookModel = {
     page = Number(page);
     limit = Number(limit);
 
-    // Firestore pagination simple par offset (ok pour projet)
-    // Bonus: total count
+    // Simple pagination by offset
     let query = col;
 
     if (available !== undefined) {
@@ -17,8 +16,7 @@ export const BookModel = {
       query = query.where("available", "==", boolVal);
     }
 
-    // Recherche simple: on stocke aussi title_lower pour "startsWith"
-    // Ici: si q, on filtre côté app (simple). Pour bonus, on peut utiliser title_lower + range.
+    // Simple search fallback: filter titles on the app side
     const totalSnap = await query.get();
     const total = totalSnap.size;
 

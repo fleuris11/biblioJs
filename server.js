@@ -28,7 +28,7 @@ app.use(express.json());
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Vues
+// Render index view into layout
 app.get("/", async (req, res, next) => {
   try {
     const body = await new Promise((resolve, reject) => {
@@ -80,5 +80,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
