@@ -14,21 +14,17 @@ import { BookModel } from "./models/book.model.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// __dirname en ESModules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middlewares globaux
 app.use(helmet());
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
-// EJS
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Render index view into layout
 app.get("/", async (req, res, next) => {
   try {
     const body = await new Promise((resolve, reject) => {
@@ -72,10 +68,8 @@ app.get("/books", async (req, res, next) => {
   }
 });
 
-// API
 app.use(apiRoutes);
 
-// Errors
 app.use(notFound);
 app.use(errorHandler);
 

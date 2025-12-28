@@ -2,8 +2,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/user.model.js";
 
-// Ensure JWT secrets are set
+
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
+
+
+
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 const signAccess = (user) => {

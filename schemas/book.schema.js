@@ -3,7 +3,6 @@ import { authorCreateSchema } from "./author.schema.js";
 
 export const bookCreateSchema = Joi.object({
   title: Joi.string().max(200).required(),
-  // accept either an existing author_id (uuid) or an embedded author object to create
   author_id: Joi.string().uuid().optional(),
   author: authorCreateSchema.optional(),
   isbn: Joi.string().length(13).required(),

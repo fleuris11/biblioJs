@@ -5,7 +5,7 @@ import { validate } from "../middlewares/validate.middleware.js";
 import { authorCreateSchema, authorUpdateSchema } from "../schemas/author.schema.js";
 
 const router = Router();
-
+//pour les auteurs
 router.get("/", AuthorsController.list);
 router.get("/:id", AuthorsController.get);
 router.post("/", requireAuth, validate(authorCreateSchema), AuthorsController.create);

@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 const col = db.collection("users");
 
 export const UserModel = {
+
   async findByEmail(email) {
     const snap = await col.where("email", "==", email).limit(1).get();
     if (snap.empty) return null;
@@ -15,6 +16,7 @@ export const UserModel = {
     const user = {
       id,
       email,
+      
       password: password_hash,
       created_at: FieldValue.serverTimestamp(),
     };

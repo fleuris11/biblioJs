@@ -1,5 +1,5 @@
 export const notFound = (req, res) => {
-  res.status(404).json({ message: "Route not found" });
+  res.status(404).json({ message: "Route not found" });// c'est pour mes routes
 };
 
 export const errorHandler = (err, req, res, next) => {

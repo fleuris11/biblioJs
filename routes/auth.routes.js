@@ -5,6 +5,8 @@ import { registerSchema, loginSchema, refreshSchema } from "../schemas/auth.sche
 
 const router = Router();
 
+//mes routes pour l'authentification
+
 router.post("/register", validate(registerSchema), AuthController.register);
 router.post("/login", validate(loginSchema), AuthController.login);
 router.post("/refresh", validate(refreshSchema), AuthController.refresh);

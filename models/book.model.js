@@ -8,7 +8,6 @@ export const BookModel = {
     page = Number(page);
     limit = Number(limit);
 
-    // Simple pagination by offset
     let query = col;
 
     if (available !== undefined) {
@@ -16,7 +15,6 @@ export const BookModel = {
       query = query.where("available", "==", boolVal);
     }
 
-    // Simple search fallback: filter titles on the app side
     const totalSnap = await query.get();
     const total = totalSnap.size;
 
@@ -42,7 +40,6 @@ export const BookModel = {
   },
 
   async create(payload) {
-    // ISBN unique check
     const existing = await col.where("isbn", "==", payload.isbn).limit(1).get();
     if (!existing.empty) {
       const err = new Error("ISBN already exists");
@@ -66,7 +63,6 @@ export const BookModel = {
     const doc = await docRef.get();
     if (!doc.exists) return null;
 
-    // si isbn changé, vérifier unicité
     if (payload.isbn) {
       const existing = await col.where("isbn", "==", payload.isbn).limit(1).get();
       if (!existing.empty) {

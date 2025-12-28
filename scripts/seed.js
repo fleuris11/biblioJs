@@ -1,3 +1,5 @@
+
+//si besoinnn pour remplir la base de données
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
@@ -14,7 +16,6 @@ async function ensureEmpty(collectionName) {
 
 async function seed() {
   try {
-    // Authors
     const authorsEmpty = await ensureEmpty("authors");
 
     const authors = [
@@ -35,7 +36,6 @@ async function seed() {
       console.log("Authors collection not empty — skipping authors insertion.");
     }
 
-    // Books
     const booksEmpty = await ensureEmpty("books");
 
     const books = [
@@ -83,7 +83,6 @@ async function seed() {
       console.log("Books collection not empty — skipping books insertion.");
     }
 
-    // Users
     const usersEmpty = await ensureEmpty("users");
 
     const users = [

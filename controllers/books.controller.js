@@ -24,14 +24,12 @@ export const BooksController = {
 
   async create(req, res, next) {
     try {
-      // Si l'appel fournit un objet `author`, on le crée automatiquement et on remplace par author_id
       if (req.body.author) {
         const createdAuthor = await AuthorModel.create(req.body.author);
         req.body.author_id = createdAuthor.id;
         delete req.body.author;
       }
 
-      // vérif author_id exist
       const author = await AuthorModel.get(req.body.author_id);
       if (!author) return res.status(400).json({ message: "author_id invalid" });
 
@@ -39,6 +37,9 @@ export const BooksController = {
       res.status(201).json(book);
     } catch (e) {
       const status = e.status || 500;
+
+
+
       res.status(status).json({ message: e.message || "Error" });
     }
   },

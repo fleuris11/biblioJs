@@ -26,7 +26,7 @@ export const AuthorModel = {
     return author;
   },
 
-  async update(id, payload) {
+  async update(id, payload) {//mise à jour
     const docRef = col.doc(id);
     const doc = await docRef.get();
     if (!doc.exists) return null;
