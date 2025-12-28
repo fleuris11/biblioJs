@@ -1,0 +1,33 @@
+<h1>Liste des livres</h1>
+
+<form method="GET" action="/books">
+  <input type="text" name="q" placeholder="Recherche titre..." value="<%= q || '' %>" />
+  <select name="available">
+    <option value="">Disponibilité (tous)</option>
+    <option value="true" <%= available==="true" ? "selected":"" %>>Disponible</option>
+    <option value="false" <%= available==="false" ? "selected":"" %>>Indisponible</option>
+  </select>
+  <button type="submit">Filtrer</button>
+</form>
+
+<p><strong>Total:</strong> <%= total %> — <strong>Page:</strong> <%= page %> — <strong>Limit:</strong> <%= limit %></p>
+
+<% books.forEach(b => { %>
+  <div class="card">
+    <h3><%= b.title %></h3>
+    <p><small>ISBN:</small> <%= b.isbn %> — <small>Année:</small> <%= b.published_year %> — <small>Pages:</small> <%= b.pages %></p>
+    <p><small>Disponible:</small> <%= b.available ? "Oui" : "Non" %></p>
+    <p><%= b.description || "" %></p>
+    <small>ID: <%= b.id %></small>
+  </div>
+<% }) %>
+
+<div style="margin-top:16px;">
+  <% if (page > 1) { %>
+    <a href="/books?page=<%= page-1 %>&limit=<%= limit %>&q=<%= q||'' %>&available=<%= available||'' %>">⬅ Précédent</a>
+  <% } %>
+
+  <% if (page * limit < total) { %>
+    <a style="margin-left:12px;" href="/books?page=<%= page+1 %>&limit=<%= limit %>&q=<%= q||'' %>&available=<%= available||'' %>">Suivant ➡</a>
+  <% } %>
+</div>

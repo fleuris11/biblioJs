@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "Projet Biblio - API Tests",
+    "_postman_id": "projet-biblio-collection",
+    "description": "Collection Postman pour tester l'API Bibliothèque (auth, authors, books)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "last_author_id", "value": "" },
+    { "key": "last_book_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth / Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpass\"\n}"
+        },
+        "url": "{{base_url}}/api/auth/register"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Register created 201 or 409', function() {", 
+              "  pm.expect(pm.response.code).to.be.oneOf([201,409]);", 
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth / Login",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpass\"\n}" },
+        "url": "{{base_url}}/api/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const res = pm.response.json();",
+              "if (res.access_token) pm.environment.set('access_token', res.access_token);",
+              "if (res.refresh_token) pm.environment.set('refresh_token', res.refresh_token);",
+              "pm.test('Login returns tokens', () => { pm.expect(res).to.have.property('access_token'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth / Refresh",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"refresh_token\": \"{{refresh_token}}\" }" },
+        "url": "{{base_url}}/api/auth/refresh"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "exec": [
+            "const res = pm.response.json();",
+            "if (res.access_token) pm.environment.set('access_token', res.access_token);",
+            "if (res.refresh_token) pm.environment.set('refresh_token', res.refresh_token);",
+            "pm.test('Refresh returns tokens', () => { pm.expect(pm.response.code).to.equal(200); });"
+          ] }
+        }
+      ]
+    },
+    {
+      "name": "Authors / GET all",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/authors" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('Authors list 200', () => pm.response.to.have.status(200));",
+        "const arr = pm.response.json();",
+        "if (Array.isArray(arr) && arr.length) pm.environment.set('last_author_id', arr[0].id);"
+      ] } } ]
+    },
+    {
+      "name": "Authors / GET by id",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/authors/{{last_author_id}}" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('GET author 200 or 404', () => pm.expect(pm.response.code).to.be.oneOf([200,404]));"
+      ] } } ]
+    },
+    {
+      "name": "Authors / POST create (protected)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Émile Zola\",\n  \"birth_year\": 1840,\n  \"nationality\": \"Française\"\n}" },
+        "url": "{{base_url}}/api/authors"
+      },
+      "event": [
+        { "listen": "prerequest", "script": { "exec": [
+          "const token = pm.environment.get('access_token');",
+          "if (!token) throw new Error('Missing access_token: run Login first');",
+          "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });"
+        ] } },
+        { "listen": "test", "script": { "exec": [
+          "pm.test('Author created 201', () => pm.expect(pm.response.code).to.equal(201));",
+          "const a = pm.response.json(); pm.environment.set('last_author_id', a.id);"
+        ] } }
+      ]
+    },
+    {
+      "name": "Authors / PUT update (protected)",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{ \"nationality\": \"Française\" }" },
+        "url": "{{base_url}}/api/authors/{{last_author_id}}"
+      },
+      "event": [ { "listen": "prerequest", "script": { "exec": [
+        "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });"
+      ] } }, { "listen": "test", "script": { "exec": [
+        "pm.test('Author updated (200 or 404)', () => pm.expect(pm.response.code).to.be.oneOf([200,404]));"
+      ] } } ]
+    },
+    {
+      "name": "Authors / DELETE (protected)",
+      "request": { "method": "DELETE", "header": [], "url": "{{base_url}}/api/authors/{{last_author_id}}" },
+      "event": [ { "listen": "prerequest", "script": { "exec": [
+        "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });"
+      ] } }, { "listen": "test", "script": { "exec": [
+        "pm.test('Author deleted (204 or 404)', () => pm.expect(pm.response.code).to.be.oneOf([204,404]));"
+      ] } } ]
+    },
+    {
+      "name": "Books / GET list (pagination)",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/books?page=1&limit=10" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('Books list 200', () => pm.response.to.have.status(200));",
+        "const j = pm.response.json(); if (j.data && j.data[0]) pm.environment.set('last_book_id', j.data[0].id);"
+      ] } } ]
+    },
+    {
+      "name": "Books / GET by id",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/books/{{last_book_id}}" },
+      "event": [ { "listen": "test", "script": { "exec": [
+        "pm.test('Get book 200 or 404', () => pm.expect(pm.response.code).to.be.oneOf([200,404]));"
+      ] } } ]
+    },
+    {
+      "name": "Books / POST create with inline author (protected)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Nouveau Livre\",\n  \"author\": { \"name\": \"A. Auteur\", \"birth_year\": 1970 },\n  \"isbn\": \"9781234567890\",\n  \"published_year\": 2020,\n  \"pages\": 123,\n  \"description\": \"Description test\",\n  \"available\": true\n}" },
+        "url": "{{base_url}}/api/books"
+      },
+      "event": [ { "listen": "prerequest", "script": { "exec": [
+        "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });"
+      ] } }, { "listen": "test", "script": { "exec": [
+        "pm.test('Book created 201', () => pm.expect(pm.response.code).to.equal(201));",
+        "const b = pm.response.json(); pm.environment.set('last_book_id', b.id); if (b.author_id) pm.environment.set('last_author_id', b.author_id);"
+      ] } } ]
+    },
+    {
+      "name": "Books / POST create with existing author_id (protected)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Livre avec author_id\",\n  \"author_id\": \"{{last_author_id}}\",\n  \"isbn\": \"9781234567891\",\n  \"published_year\": 2021,\n  \"pages\": 200,\n  \"description\": \"Test\",\n  \"available\": true\n}" },
+        "url": "{{base_url}}/api/books" },
+      "event": [ { "listen": "prerequest", "script": { "exec": [
+        "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });"
+      ] } }, { "listen": "test", "script": { "exec": [
+        "pm.test('Book created with author_id 201', () => pm.expect(pm.response.code).to.equal(201));",
+        "pm.environment.set('last_book_id', pm.response.json().id);"
+      ] } } ]
+    },
+    {
+      "name": "Books / PUT update (protected)",
+      "request": { "method": "PUT", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"available\": false }" }, "url": "{{base_url}}/api/books/{{last_book_id}}" },
+      "event": [ { "listen": "prerequest", "script": { "exec": [ "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });" ] } }, { "listen": "test", "script": { "exec": [ "pm.test('Book updated (200 or 404)', () => pm.expect(pm.response.code).to.be.oneOf([200,404]));" ] } } ]
+    },
+    {
+      "name": "Books / DELETE (protected)",
+      "request": { "method": "DELETE", "header": [], "url": "{{base_url}}/api/books/{{last_book_id}}" },
+      "event": [ { "listen": "prerequest", "script": { "exec": [ "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });" ] } }, { "listen": "test", "script": { "exec": [ "pm.test('Book deleted (204 or 404)', () => pm.expect(pm.response.code).to.be.oneOf([204,404]));" ] } } ]
+    },
+    {
+      "name": "Books / POST validation error (missing isbn)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"title\": \"Invalid Book\", \"author_id\": \"{{last_author_id}}\", \"published_year\":2020, \"pages\": 10 }" }, "url": "{{base_url}}/api/books" },
+      "event": [ { "listen": "prerequest", "script": { "exec": [ "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });" ] } }, { "listen": "test", "script": { "exec": [ "pm.test('Validation error 400', () => pm.expect(pm.response.code).to.equal(400));" ] } } ]
+    },
+    {
+      "name": "Books / POST duplicate ISBN (expect 409)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"title\": \"Dup ISBN\", \"author_id\": \"{{last_author_id}}\", \"isbn\": \"9781234567890\", \"published_year\":2020, \"pages\":100 }" }, "url": "{{base_url}}/api/books" },
+      "event": [ { "listen": "prerequest", "script": { "exec": [ "const token = pm.environment.get('access_token'); if (!token) throw new Error('Missing access_token: run Login first'); pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });" ] } }, { "listen": "test", "script": { "exec": [ "pm.test('Conflict 409', () => pm.expect(pm.response.code).to.equal(409));" ] } } ]
+    },
+    {
+      "name": "Protected route without token (expect 401)",
+      "request": { "method": "POST", "header": [ { "key": "Content-Type", "value": "application/json" } ], "body": { "mode": "raw", "raw": "{ \"name\": \"No Token\" }" }, "url": "{{base_url}}/api/authors" },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('401 Missing token', () => pm.expect(pm.response.code).to.equal(401));" ] } } ]
+    },
+    {
+      "name": "Books / GET search (q param)",
+      "request": { "method": "GET", "header": [], "url": "{{base_url}}/api/books?q=pride" },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Search OK', () => pm.response.to.have.status(200));" ] } } ]
+    }
+  ]
+}

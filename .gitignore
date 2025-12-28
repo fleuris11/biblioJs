@@ -1,0 +1,18 @@
+# Node dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+firebase-config.json
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Editor + build
+.vscode/
+dist/
+coverage/
+
